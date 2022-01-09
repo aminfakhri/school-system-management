@@ -1,0 +1,1261 @@
+from tkinter import *
+from tkinter import ttk
+import mysql.connector
+import tkinter.messagebox
+from datetime import datetime
+from tkinter import filedialog
+import shutil
+import os
+from tkinter import Text,Tk
+import tkinter as tk
+'''
+Application Program:    School Management System
+Authors:                Amin Fakhri
+Date:                   December 15, 2021
+
+This is code for Python Mini Project
+
+This code is to use multiple functions to input, search, display, and save data of students in a database. There are
+six scenerios implemented. The six scenerios are: administration/login, student registration, course registration, 
+fees calculation, input of receipt, administration, and registration table, and viewing the receipt. The six tables are:
+administration, course, course_offered, feeinstallment, receipt, registration, and student. The purpose of this project
+is to define a student registration system for students from an administrator.   
+
+Description of sections of code:
+
+'''
+mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+
+my_cursor = mydb.cursor()
+
+my_cursor.execute("use school")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS student(id INTEGER NOT NULL PRIMARY KEY, name VARCHAR(25), surname VARCHAR(25), email VARCHAR(25), subject VARCHAR(25), gender VARCHAR(25), fee INTEGER)")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS course(course_id VARCHAR(25) NOT NULL PRIMARY KEY, python INTEGER, java INTEGER, c INTEGER, unity INTEGER, bash INTEGER, php INTEGER)")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS administration(admin_id INTEGER NOT NULL PRIMARY KEY, initials VARCHAR(25), priority VARCHAR(25), case_number VARCHAR(25), st_id INTEGER)")
+my_cursor.execute("ALTER TABLE administration add foreign key (st_id) references student(id)")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS registration(registration_id INTEGER NOT NULL PRIMARY KEY, student_ids INTEGER, course_ids VARCHAR(25), year VARCHAR(25), reference VARCHAR(25))")
+my_cursor.execute("ALTER TABLE registration add foreign key (student_ids) references student(id)")
+my_cursor.execute("ALTER TABLE registration add foreign key (course_ids) references course(course_id)")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS FEEINSTALLMENT(fee_id INTEGER NOT NULL PRIMARY KEY, TOTAL_FEE INTEGER, REMAIN_FEE INTEGER, PAID_FEE INTEGER, INSTALLMENT INTEGER, ad_id INTEGER)")
+my_cursor.execute("ALTER TABLE FEEINSTALLMENT add foreign key (ad_id) references administration(admin_id)")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS receipt(receipt_id INTEGER NOT NULL PRIMARY KEY, reference VARCHAR(25), message VARCHAR(25), year VARCHAR(25), fees_id INTEGER)")
+my_cursor.execute("ALTER TABLE receipt add foreign key (fees_id) references FEEINSTALLMENT(fee_id)")
+my_cursor.execute("CREATE TABLE IF NOT EXISTS course_offered(offer_id INTEGER NOT NULL PRIMARY KEY, semester VARCHAR(25), course_code VARCHAR(25), year VARCHAR(25), courses_ids VARCHAR(25))")
+my_cursor.execute("ALTER TABLE course_offered add foreign key (courses_ids) references course(course_id)")
+
+
+
+mydb.commit()
+mydb.close()
+
+mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+my_cursor = mydb.cursor()
+my_cursor.execute("use school")
+print ('software is running......')
+firstw=Tk()
+firstw.title("ADMINISTRATOR")
+firstw.geometry("1600x1000+0+0")
+label=Label(text="SCHOOL MANAGEMENT SYSTEM ",font=("times new roman",35),bg="red",fg="white")
+label.pack(side=TOP ,fill=X)
+user1=Label(text="USERNAME",font=("arial",23))
+user1.place(x=610,y=120)
+user=Entry(width=17,bd=5,font=("arial",20))
+user.place(x=570,y=200)
+label.pack(side=TOP ,fill=X)
+user2=Label(text="PASSWORD",font=("arial",23))
+user2.place(x=610,y=280)
+user3=Entry(width=17,show="*",bd=5,font=("arial",20))
+user3.place(x=570,y=360)
+
+
+
+def second():
+    global secondw
+    secondw=Tk()
+    secondw.title("STUDENT")
+    secondw.geometry("1600x1000+0+0")
+    def window2():
+        secondw.destroy()
+        root()
+    def student():
+        student1=Tk()
+        student1.title("STUDENT DETAILS")
+    def studentid():
+        rot = tk.Tk()
+        rot.title("STUDENT")
+        rot.geometry("1600x1000+0+0")
+        mainlabel = Label(rot, text="STUDENT DETAILS", font=("times new roman", 30), bg="yellow",fg="black")
+        mainlabel.pack(side=TOP, fill=X)
+        chat1 = ttk.Treeview(rot,height=20, columns=('id','name','fee','subject'), selectmode="extended")
+        chat1.heading('#0', text='ID', anchor=CENTER)
+        chat1.heading('#1', text='NAME', anchor=W)
+        chat1.heading('#2', text='FEE', anchor=W)
+        chat1.heading('#3', text="SUBJECT", anchor=W)
+        chat1.column('#1', stretch=YES, minwidth=50, width=100)
+        chat1.column('#3', stretch=YES, minwidth=100, width=200)
+        chat1.column('#2', stretch=YES, minwidth=50, width=100)
+        chat1.column('#0', stretch=YES, minwidth=50, width=70)
+        chat1.place(x=470, y=130)
+        ttk.Style().configure("Treeview", background="black", foreground="coral1")
+        ttk.Style().configure("Treeview.Heading", background="blue", foreground="palevioletRed1")
+        rot.configure(background='white')
+
+        vsb=ttk.Scrollbar(rot, orient="vertical",command=chat1.yview)
+        vsb.place(x=1000,y=145,height=400+20)
+        chat1.configure(yscrollcommand=vsb.set)
+
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT * FROM student ')
+        myresult = my_cursor.fetchall()
+        for data in myresult:
+            chat1.insert('', 0, text=data[0], values=(data[1], data[6], data[4]))
+
+    def adisplay():
+            rt2 = tk.Tk()
+            rt2.title("ADMINISTRATION DETAILS")
+            rt2.geometry("1600x1000+0+0")
+            mainlabel2 = Label(rt2, text="ADMINISTRATION DETAILS", font=("times new roman", 30), bg="black", fg="white")
+            mainlabel2.pack(side=TOP, fill=X)
+            chat2 = ttk.Treeview(rt2, height=20, columns=('admin_id', 'initials', 'priority', 'case_number'),
+                                 selectmode="extended")
+            chat2.heading('#0', text='ADMIN ID', anchor=CENTER)
+            chat2.heading('#1', text='INITIALS', anchor=W)
+            chat2.heading('#2', text='PRIORITY', anchor=W)
+            chat2.heading('#3', text='CASE NUMBER', anchor=W)
+            chat2.column('#1', stretch=YES, minwidth=50, width=100)
+            chat2.column('#3', stretch=YES, minwidth=50, width=200)
+            chat2.column('#2', stretch=YES, minwidth=50, width=100)
+            chat2.column('#0', stretch=YES, minwidth=50, width=70)
+            chat2.place(x=470, y=130)
+            ttk.Style().configure("Treeview", background="black", foreground="coral1")
+            ttk.Style().configure("Treeview.Heading", background="blue", foreground="palevioletRed1")
+            rt2.configure(background='white')
+
+            vsb = ttk.Scrollbar(rt2, orient="vertical", command=chat2.yview)
+            vsb.place(x=1000, y=145, height=400 + 20)
+            chat2.configure(yscrollcommand=vsb.set)
+
+            mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234')
+            my_cursor = mydb.cursor()
+            my_cursor.execute("use school")
+            my_cursor.execute('SELECT * FROM administration ')
+            myresult = my_cursor.fetchall()
+            for data in myresult:
+                chat2.insert('', 0, text=data[0], values=(data[1], data[2], data[3]))
+
+    def receiptv():
+            rt = tk.Tk()
+            rt.title("RECEIPT DETAILS")
+            rt.geometry("1600x1000+0+0")
+            mainlabel = Label(rt, text="RECEIPT DETAILS", font=("times new roman", 35), bg="black", fg="white")
+            mainlabel.pack(side=TOP, fill=X)
+            chat1 = ttk.Treeview(rt, height=20, columns=('receipt_id', 'name', 'message', 'year'), selectmode="extended")
+            chat1.heading('#0', text='NAME', anchor=CENTER)
+            chat1.heading('#1', text='SURNAME', anchor=CENTER)
+            chat1.heading('#2', text='SUBJECT', anchor=CENTER)
+            chat1.heading('#3', text='FEE', anchor=CENTER)
+            chat1.column('#1', stretch=YES, minwidth=50, width=100)
+            chat1.column('#3', stretch=YES, minwidth=50, width=100)
+            chat1.column('#2', stretch=YES, minwidth=50, width=300)
+            chat1.column('#0', stretch=YES, minwidth=50, width=70)
+            vsb = ttk.Scrollbar(rt, orient="vertical", command=chat1.yview)
+            vsb.place(x=955, y=170, height=400 + 20)
+            chat1.configure(yscrollcommand=vsb.set)
+            chat1.place(x=400, y=170)
+            ttk.Style().configure("Treeview", background="#383838", foreground="coral1")
+            ttk.Style().configure("Treeview.heading", background="blue", foreground="palevioletRed1")
+            rt.configure(background="white")
+            mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234')
+            my_cursor = mydb.cursor()
+            my_cursor.execute("use school")
+            my_cursor.execute('SELECT name, surname, subject, fee FROM student')
+            for row in my_cursor.fetchall():
+                chat1.insert('', 0, text=row[0], values=(row[1], row[2], row[3]))
+
+    def coursev():
+        rt = tk.Tk()
+        rt.title("COURSE DETAILS")
+        rt.geometry("1600x1000+0+0")
+        mainlabel = Label(rt, text="COURSE DETAILS", font=("times new roman", 35), bg="black", fg="white")
+        mainlabel.pack(side=TOP, fill=X)
+        chat1 = ttk.Treeview(rt, height=20, columns=('course_id', 'semester', 'section'), selectmode="extended")
+        chat1.heading('#0', text='COURSE ID', anchor=CENTER)
+        chat1.heading('#1', text='SEMESTER', anchor=CENTER)
+        chat1.heading('#2', text='SECTION', anchor=CENTER)
+        chat1.column('#1', stretch=YES, minwidth=50, width=100)
+        chat1.column('#2', stretch=YES, minwidth=50, width=100)
+        chat1.column('#0', stretch=YES, minwidth=50, width=70)
+        vsb = ttk.Scrollbar(rt, orient="vertical", command=chat1.yview)
+        vsb.place(x=955, y=170, height=400 + 20)
+        chat1.configure(yscrollcommand=vsb.set)
+        chat1.place(x=400, y=170)
+        ttk.Style().configure("Treeview", background="#383838", foreground="coral1")
+        ttk.Style().configure("Treeview.heading", background="blue", foreground="palevioletRed1")
+        rt.configure(background="white")
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT * FROM course_offered')
+        for row in my_cursor.fetchall():
+            chat1.insert('', 0, text=row[0], values=(row[1], row[2],))
+
+    def viewv():
+        rt = tk.Tk()
+        rt.title("REGISTRATION DETAILS")
+        rt.geometry("1600x1000+0+0")
+        mainlabel = Label(rt, text="REGISTRATION DETAILS", font=("times new roman", 35), bg="yellow", fg="black")
+        mainlabel.pack(side=TOP, fill=X)
+        chat1 = ttk.Treeview(rt, height=20, columns=('registration_id', 'student_ids' , 'course_ids'), selectmode="extended")
+        chat1.heading('#0', text='REGISTRATION ID', anchor=CENTER)
+        chat1.heading('#1', text='STUDENT ID', anchor=CENTER)
+        chat1.heading('#2', text='COURSE ID', anchor=CENTER)
+        chat1.column('#1', stretch=YES, minwidth=50, width=100)
+        chat1.column('#2', stretch=YES, minwidth=50, width=100)
+        chat1.column('#0', stretch=YES, minwidth=50, width=70)
+        vsb = ttk.Scrollbar(rt, orient="vertical", command=chat1.yview)
+        vsb.place(x=955, y=170, height=400 + 20)
+        chat1.configure(yscrollcommand=vsb.set)
+        chat1.place(x=400, y=170)
+        ttk.Style().configure("Treeview", background="#383838", foreground="coral1")
+        ttk.Style().configure("Treeview.heading", background="blue", foreground="palevioletRed1")
+        rt.configure(background="white")
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT * FROM registration')
+        for row in my_cursor.fetchall():
+            chat1.insert('', 0, text=row[0], values=(row[0], row[1],))
+
+
+    def window1():
+        secondw.destroy()
+        window()
+    mainlabel= Label(secondw,text="SCHOOL MANAGEMENT SYSTEM", font=("MS Serif", 35), bg="yellow",fg="black")
+    mainlabel.pack(side=TOP, fill=X)
+    button = Button(secondw,width=15, font=("MS Serif", 19), text="1.REGISTRATION", bg="black",fg="red", command=window2)
+    button.place(x=10, y=480)
+    receipt = Button(secondw, width=15, font=("MS Serif", 19), text="4.FEE DETAILS", bg="black",fg="red",command=window1)
+    receipt.place(x=280, y=480)
+    fee_details = Button(secondw, width=15, font=("MS Serif", 19), text="5.RECEIPT", bg="black",fg="red",command=enquiry1)
+    fee_details.place(x=560, y=480)
+    viewenquiry= Button(secondw, width=15, font=("MS Serif", 19), text="6.VIEW RECEIPT", bg="black",fg="red",command=receiptv)
+    viewenquiry.place(x=840, y=480)
+    viewenquiry1 = Button(secondw, width=20, font=("MS Serif", 19), text="7.STUDENT DETAILS", bg="black",fg="red",command=studentid)
+    viewenquiry1.place(x=1100, y=480)
+    button1= Button(secondw, width=20, font=("MS Serif", 19), text="8.ADMINISTRATION", bg="black", fg="red",command=admini)
+    button1.place(x=10, y=550)
+    button1 = Button(secondw, width=27, font=("MS Serif", 19), text="9.ADMIN DETAILS", bg="black", fg="red",command=adisplay)
+    button1.place(x=10, y=650)
+    button3 = Button(secondw, width=20, font=("MS Serif", 19), text="3.COURSE DETAILS", bg="black", fg="red",command=coursev)
+    button3.place(x=1100, y=650)
+    button2 = Button(secondw,width=25, font=("MS Serif", 19), text="10.REGISTRATION INPUT", bg="black",fg="red", command=viewing)
+    button2.place(x=560, y=550)
+    button2 = Button(secondw, width=20, font=("MS Serif", 19), text="11.REGISTRATION VIEW", bg="black", fg="red", command=viewv)
+    button2.place(x=560, y=750)
+    button3 = Button(secondw, width=15, font=("MS Serif", 19), text="2.COURSES", bg="black", fg="red",command=courses)
+    button3.place(x=1100, y=550)
+    button4 = Button(secondw, width=25, font=("MS Serif", 19), text="FORMAT DATABASE", bg="yellow", fg="red", command=deleta)
+    button4.place(x=1000, y=800)
+    button5 = Button(secondw, width=25, font=("MS Serif", 19), text="SHUTDOWN", bg="yellow", fg="red", command=refresh)
+    button5.place(x=1000, y=900)
+    button5 = Button(secondw, width=25, font=("MS Serif", 19), text="REFRESH", bg="yellow", fg="red", command=restart)
+    button5.place(x=700, y=900)
+
+def restart():
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    mydb.commit()
+    mydb.close()
+    secondw.destroy()
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    second()
+
+def refresh():
+    secondw.destroy()
+
+def distroy():
+    firstw.destroy()
+
+def login():
+
+        if user.get()=="1" and user3.get()=="1":
+           tkinter.messagebox.showinfo("LOGIN SUCCESSFUL", "HAVE A NICE DAY")
+           second()
+           distroy()
+        elif user.get()=="" or user3.get()=="":
+            tkinter.messagebox.showinfo("FILL IN ALL FIELDS", "ONE OR MORE FIELDS NOT FILLED IN")
+        else:
+            tkinter.messagebox.showinfo("INVALID USERNAME OR PASSWORD ", "YOU HAVE ENTERED INVALID USERNAME OR PASSWORD")
+            user.delete(0, END)
+            user3.delete(0, END)
+
+def recover():
+    global entry99
+    entry99 = StringVar()
+    def recoverdestroy():
+        recover.destroy
+    recover = Tk()
+    recover.title("RECOVER PASSWORD")
+    recover.geometry("1000x1000+0+0")
+    label = Label(recover, text="RECOVER PASSWORD ", font=("times new roman", 35), bg="aqua", fg="black")
+    label.pack(side=TOP, fill=X)
+    label2 = Label(recover, text="RECOVERY EMAIL", font=("arial", 23))
+    label2.place(x=100, y=120)
+    entry99 = Entry(recover, width=17, bd=5, font=("arial", 20))
+    entry99.place(x=500, y=120)
+    button = Button(recover, text="submit", width=30, bg="black", fg="white", command=recovered)
+    button.place(x=100, y=350)
+    button1 = Button(recover, text="<< BACK", width=30, bg="red", fg="black", command=recover.destroy)
+    button1.place(x=100, y=450)
+
+def recovered():
+    email = entry99.get()
+    if "@" and ".com" not in entry99.get():
+        tkinter.messagebox.showinfo(" INVALID DETAILS", "ENTER VALID EMAIL ADDRESS")
+        entry99.delete(0, END)
+
+    elif entry99.get() == ("") :
+            tkinter.messagebox.showinfo('Fill in all fields', 'One or More Fields are not filled')
+    else:
+         tkinter.messagebox.showinfo("PASSWORD RECOVERED!", "AN EMAIL HAS BEEN SENT TO THAT ADDRESS!")
+
+def hint():
+    tkinter.messagebox.showinfo("NUMBER", "WHAT IS 1 + 0")
+
+
+
+INQUIRY=Button(text="LOGIN", width=17, font=("arial", 20), bg="red", fg="white", command=login)
+INQUIRY.place(x=560, y=480)
+HINT = Button(text="PASSWORD HINT", width=17, font=("arial", 20), bg="aqua", fg="white", command=hint)
+HINT.place(x=560, y=560)
+RECOVER = Button(text="RECOVER PASSWORD", width=20, font=("arial", 20), bg="purple", fg="white", command=recover)
+RECOVER.place(x=540, y=650)
+
+
+def root():
+    root=Tk()
+    root.geometry("1600x1000+0+0")
+    root.title("ADMINISTRATOR")
+    global entry0
+    global entry1
+    global entry2
+    global entry3
+    global entry4
+    global entry5
+    global entry6
+    global box
+    global name
+    global radio1
+    global radio2
+    name = StringVar()
+    global surname
+    surname = StringVar()
+    global gender
+    gender = IntVar()
+    global var1
+    var1 = IntVar()
+    global var2
+    var2 = IntVar()
+    global semester
+    semester = StringVar()
+    global year
+    year = StringVar()
+    global section
+    section = StringVar()
+    global subject
+    subject = StringVar()
+    global courses_ids
+    courses_ids = StringVar()
+    global student_ids
+    student_ids = IntVar()
+    global email
+    email = StringVar()
+    global python
+    python = IntVar()
+    global java
+    java = IntVar()
+    global c
+    c = IntVar()
+    global unity
+    unity = IntVar()
+    global bash
+    bash = IntVar()
+    global php
+    php = IntVar()
+    global calculate
+    calculate = StringVar()
+    global id
+    id = IntVar()
+    search = IntVar()
+    global fees_id
+    fees_id = IntVar()
+    global course_id
+    course_id = StringVar()
+    global message
+    message = StringVar()
+    id = id.get()
+    NAME = name.get()
+    SURNAME = surname.get()
+    EMAIL = email.get()
+    SUBJECT = subject.get()
+    GENDER = gender.get()
+    PYTHON = python.get()
+    JAVA = java.get()
+    C = c.get()
+    UNITY = unity.get()
+    PHP = php.get()
+    BASH = bash.get()
+    COURSE_ID = course_id.get()
+    CALCULATE = calculate.get()
+    calculation2 = 3000
+    label=Label(root,text="REGISTRATION FORM", font=("arial",25), bg="yellow",fg="black")
+    label.pack(side=TOP, fill=X)
+
+    label0=Label(root, text="STUDENT ID:", font=("arial", 18))
+    label0.place(x=300, y=100)
+
+    label1 =Label(root,text="NAME:", font=("arial",18))
+    label1.place(x=300, y=150)
+
+    label2=Label(root,text="SURNAME:", font=("arial",18))
+    label2.place(x=300, y=210)
+
+    label3=Label(root,text="EMAIL:", font=("arial",18))
+    label3.place(x=300, y=270)
+
+    label3=Label(root,text="GENDER:", font=("arial",18))
+    label3.place(x=300, y=330)
+
+    label4=Label(root,text="COURSE:", font=("arial",18))
+    label4.place(x=300, y=390)
+
+    label4=Label(root,text="SUBJECT", font=("arial",18))
+    label4.place(x=300, y=470)
+
+
+    label4=Label(root,text="TOTAL_FEE", font=("arial",18))
+    label4.place(x=300, y=520)
+
+    label5 = Label(root, text="COURSE ID:", font=("arial", 18))
+    label5.place(x=300, y=570)
+
+
+#==============================ENTRY FIELD========================================
+    entry0=Entry(root, textvar=id, width=10, font=("arial", 15, "bold"), bd=5)
+    entry0.place(x=500, y=105)
+
+    entry5=Entry( root, textvar=calculate,state="readonly",width=20,font=("arial",15,"bold") ,bd=5)
+    entry5.place(x=500, y=515)
+
+    entry1=Entry(root,bd=5, width=20,textvar=name ,font=("arial",15))
+    entry1.place(x=500,y=150)
+
+
+    entry2=Entry(root,bd=5, width=20, textvar=surname ,font=("arial",15))
+    entry2.place(x=500,y=210)
+
+    entry3=Entry(root,bd=5, width=20,textvar=email ,font=("arial",15))
+    entry3.place(x=500,y=270)
+
+    entry4=Entry(root,bd=5, text="enter roll no.",width=20,textvar=search ,font=("arial",15))
+    entry4.place(x=800,y=150)
+    search.set("")
+
+    entry6 = Entry(root, bd=5, width=20, textvar=course_id, font=("arial", 15))
+    entry6.place(x=500, y=570)
+
+
+#================================RADIO BUTTON=======================================
+
+    radio1=Radiobutton(root,text="MALE", variable=gender, value=1 ,font=("arial",13))
+    radio1.place(x=515, y=340)
+
+    radio2=Radiobutton(root,text="FEMALE", variable=gender, padx=20, value=0 ,font=("arial",13))
+    radio2.place(x=590, y=340)
+    gender.set(3)
+
+#================================SELECT LIST======================================
+
+    box=ttk.Combobox(root,textvariable=subject,state="readonly", font=("arial",12,"bold"),width=22)
+    box['values']=['SELECT','COMPUTER SCIENCE','MECHANICS','MYSQL','IT']
+    box.current(0)
+    box.place(x=503,y=395)
+
+
+#===============================CHECKBUTTONS====================================
+
+    checkbutton1=Checkbutton(root,text="JAVA",variable=java)
+    checkbutton1.place(x=502,y=470 )
+
+    checkbutton1=Checkbutton(root,text="C",variable=c)
+    checkbutton1.place(x=555,y=470 )
+
+
+    checkbutton1=Checkbutton(root,text="PYTHON",variable=python)
+    checkbutton1.place(x=600,y=470)
+
+    checkbutton1 = Checkbutton(root, text="UNITY", variable=unity)
+    checkbutton1.place(x=675, y=470)
+
+    checkbutton1 = Checkbutton(root, text="PHP", variable=php)
+    checkbutton1.place(x=750, y=470)
+
+    checkbutton1 = Checkbutton(root, text="BASH", variable=bash)
+    checkbutton1.place(x=800, y=470)
+
+
+    python.set(0)
+    java.set(0)
+    c.set(0)
+    unity.set(0)
+    php.set(0)
+    bash.set(0)
+    def dis():
+        root.destroy()
+        second()
+
+
+    button1=Button(root,text="CALCULATE FEE",width=14,font=("Comic Sans",10),bg="red",fg="white" ,command=calculation)
+    button1.place(x=530 , y=630)
+
+    button12 = Button(root, text="BACK", width=18, font=("MS Serif", 15), bg="red",fg="white",command=dis )
+    button12.place(x=0, y=0)
+
+    button2=Button(root,text="SUBMIT FORM",width=14,font=("MS Serif",10),bg="red",fg="white",command= msg  )
+    button2.place(x=660 , y=630)
+
+    button3=Button(root,text="RESET",width=14,font=("MS Serif",10),bg="red",fg="white",command=contact )
+    button3.place(x=395 , y=630)
+
+    button4=Button(root,text="SEARCH",width=14,font=("arial",10),bg="red",fg="white" ,command=all )
+    button4.place(x=1100 , y=150)
+
+    button4=Button(root,text="UPDATE",width=14,font=("arial",10),bg="red",fg="white" ,command=update)
+    button4.place(x=950 , y=630)
+
+    button5=Button(root,text="DELETE ALL",width=14,font=("arial",10),bg="red",fg="white",command=delete )
+    button5.place(x=800 , y=630)
+
+
+def admini():
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    admini = Tk()
+    admini.title("ADMINISTRATION")
+    admini.geometry("1600x1000+0+0")
+    admin_id = IntVar()
+    initials = StringVar()
+    priority = StringVar()
+    case_number = StringVar()
+    st_id = IntVar()
+    global entry66
+    global entry67
+    global entry68
+    global entry69
+    global entry99
+    global entry01
+    def adminidestroy():
+        admini.destroy()
+    label0 = Label(admini, text="ADMINISTRATION", font=("arial", 25), bg="yellow", fg="black")
+    label0.pack(side=TOP, fill=X)
+    label1 = Label(admini, text="ADMIN ID", font=("MS Serif", 17))
+    label1.place(x=300, y=150)
+    label2 = Label(admini, text="INITIALS:", font=("MS Serif", 17))
+    label2.place(x=300, y=210)
+    label3 = Label(admini, text="PRIORITY", font=("MS Serif", 17))
+    label3.place(x=300, y=270)
+    label4 = Label(admini, text="CASE NUMBER", font=("MS Serif", 17))
+    label4.place(x=300, y=310)
+    label4 = Label(admini, text="STUDENT ID", font=("MS Serif", 17))
+    label4.place(x=300, y=350)
+    entry66 = Entry(admini, bd=5, width=20, font=("MS Serif", 15))
+    entry66.place(x=500, y=150)
+    entry67 = Entry(admini, bd=5, width=20, font=("MS Serif", 15))
+    entry67.place(x=500, y=210)
+    entry68 = Entry(admini, bd=5, width=20, font=("MS Serif", 15))
+    entry68.place(x=500, y=270)
+    entry69 = Entry(admini, bd=5, width=20, font=("MS Serif", 15))
+    entry69.place(x=500, y=310)
+    entry99 = Entry(admini, bd=5, width=20, font=("MS Serif", 15))
+    entry99.place(x=500, y=350)
+    button = Button(admini, text="submit", width=30, bg="black", fg="white", command=a)
+    button.place(x=500, y=400)
+    button1 = Button(admini, text="<< BACK", width=30, bg="red", fg="black", command=adminidestroy)
+    button1.place(x=0, y=0)
+
+
+
+def a():
+     admin_id = entry66.get()
+     initials = entry67.get()
+     priority = entry68.get()
+     case_number = entry69.get()
+     st_id = entry99.get()
+     if admin_id == ("") or initials == ("") or priority == ("") or case_number == ("") or st_id == (""):
+         tkinter.messagebox.showinfo('Fill in all fields', 'One or More Fields are not filled')
+     else:
+         admin_id = entry66.get()
+         initials = entry67.get()
+         priority = entry68.get()
+         case_number = entry69.get()
+         st_id = entry99.get()
+         tkinter.messagebox.showinfo('Incident Recorded', 'Records Updated')
+         mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+         my_cursor = mydb.cursor()
+         my_cursor.execute("use school")
+         sql_st = 'INSERT INTO administration(admin_id, initials, priority, case_number, st_id)  VALUES (%s,%s,%s,%s,%s)'
+         values = (admin_id, initials, priority, case_number, st_id)
+         my_cursor.execute(sql_st, values)
+         mydb.commit()
+
+def viewing():
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    viewing = Tk()
+    viewing.title("REGISTRATION")
+    viewing.geometry("1600x1000+0+0")
+    view_id=IntVar()
+    identifier=StringVar()
+    view_number=IntVar()
+    admin_id=StringVar()
+    global entry70
+    global entry71
+    global entry72
+    global entry73
+    def viewingdestroy():
+        viewing.destroy()
+    label1 = Label(viewing, text="REGISTRATION", font=("arial", 25), bg="yellow", fg="black")
+    label1.pack(side=TOP, fill=X)
+    label2 = Label(viewing, text="REGISTRATION ID", font=("arial", 17))
+    label2.place(x=290, y=150)
+    label3 = Label(viewing, text="STUDENT ID", font=("arial", 17))
+    label3.place(x=300, y=210)
+    label4 = Label(viewing, text="COURSE ID", font=("arial", 17))
+    label4.place(x=300, y=270)
+    label5 = Label(viewing, text="YEAR", font=("arial", 17))
+    label5.place(x=300, y=310)
+    entry70 = Entry(viewing, bd=5, width=20, font=("arial", 15))
+    entry70.place(x=500, y=150)
+    entry71 = Entry(viewing, bd=5, width=20, font=("arial", 15))
+    entry71.place(x=500, y=210)
+    entry72 = Entry(viewing, bd=5, width=20, font=("arial", 15))
+    entry72.place(x=500, y=270)
+    entry73 = Entry(viewing, bd=5, width=20, font=("arial", 15))
+    entry73.place(x=500, y=310)
+    button = Button(viewing, text="submit", width=30, bg="black", fg="white", command=v)
+    button.place(x=500, y=350)
+    button1 = Button(viewing, text="<< BACK", width=30, bg="red", fg="black", command=viewingdestroy)
+    button1.place(x=0, y=0)
+
+def v():
+    registration_id = entry70.get()
+    student_ids = entry71.get()
+    course_id = entry72.get()
+    year = entry73.get()
+    if registration_id == ("") or student_ids == ("") or course_id == ("") or year == (""):
+        tkinter.messagebox.showinfo('Fill in all fields', 'One or More Fields are not filled')
+    else:
+        registration_id = entry70.get()
+        student_ids = entry71.get()
+        course_ids = entry72.get()
+        year = entry73.get()
+        tkinter.messagebox.showinfo('Registration Details', 'Registration Details Viewable')
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        sql_st = 'INSERT INTO registration(registration_id, student_ids, course_ids, year)  VALUES (%s,%s,%s,%s)'
+        values = (registration_id, student_ids, course_ids, year)
+        my_cursor.execute(sql_st, values)
+        mydb.commit()
+
+def courses():
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    courses = Tk()
+    courses.title("COURSES")
+    courses.geometry("1600x1000+0+0")
+    course_ids=StringVar()
+    semester=StringVar()
+    course_code=StringVar()
+    year=StringVar()
+    global entry74
+    global entry75
+    global entry76
+    global entry77
+    global entry78
+
+
+    def coursesdestroy():
+        courses.destroy()
+    label1 = Label(courses, text="COURSES", font=("arial", 25), bg="yellow", fg="black")
+    label1.pack(side=TOP, fill=X)
+    label2 = Label(courses, text="OFFER_ID", font=("arial", 17))
+    label2.place(x=300, y=150)
+    label3 = Label(courses, text="SEMESTER", font=("arial", 17))
+    label3.place(x=300, y=210)
+    label4 = Label(courses, text="COURSE CODE", font=("arial", 17))
+    label4.place(x=300, y=270)
+    label5 = Label(courses, text="YEAR", font=("arial", 17))
+    label5.place(x=300, y=310)
+    label5 = Label(courses, text="COURSE ID", font=("arial", 17))
+    label5.place(x=300, y=350)
+    entry74 = Entry(courses, bd=5, width=20, font=("arial", 15))
+    entry74.place(x=500, y=150)
+    entry75 = Entry(courses, bd=5, width=20, font=("arial", 15))
+    entry75.place(x=500, y=210)
+    entry76 = Entry(courses, bd=5, width=20, font=("arial", 15))
+    entry76.place(x=500, y=270)
+    entry77 = Entry(courses, bd=5, width=20, font=("arial", 15))
+    entry77.place(x=500, y=310)
+    entry78 = Entry(courses, bd=5, width=20, font=("arial", 15))
+    entry78.place(x=500, y=350)
+    button = Button(courses, text="submit", width=30, bg="black", fg="white", command=c)
+    button.place(x=500, y=400)
+    button1 = Button(courses, text="<< BACK", width=30, bg="red", fg="black", command=coursesdestroy)
+    button1.place(x=0, y=0)
+
+def c():
+    offer_id=entry74.get()
+    semester=entry75.get()
+    course_code=entry76.get()
+    year=entry77.get()
+    courses_ids=entry78.get()
+    if offer_id == ("") or year == ("") or course_code == ("") or courses_ids == ("") or semester == (""):
+         tkinter.messagebox.showinfo('Fill in all fields', 'One or More Fields are not filled')
+    else:
+        offer_id = entry74.get()
+        semester = entry75.get()
+        course_code = entry76.get()
+        year = entry77.get()
+        courses_ids = entry78.get()
+        tkinter.messagebox.showinfo('Course Registered', 'Thank you')
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        statement1 = 'INSERT INTO course_offered(offer_id, semester, course_code, year, courses_ids) VALUES (%s,%s,%s,%s,%s)'
+        values1 = (offer_id, semester, course_code, year, courses_ids)
+        my_cursor.execute(statement1, values1)
+        mydb.commit()
+
+def enter():
+    receipt_id=entry23.get()
+    reference=entry24.get()
+    message=entry30.get()
+    year=entry31.get()
+    fees_id=entry32.get()
+    if reference == ("") or receipt_id == ("") or message == ("") or fees_id == ("") or year == (""):
+         tkinter.messagebox.showinfo('Fill in all fields', 'One or More Fields are not filled')
+    else:
+        receipt_id = entry23.get()
+        reference = entry24.get()
+        message = entry30.get()
+        year = entry31.get()
+        fees_id = entry32.get()
+        tkinter.messagebox.showinfo('Thanks', 'Have a Nice Day')
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        statement = 'INSERT INTO receipt(receipt_id, reference, message, year, fees_id) VALUES (%s,%s,%s,%s,%s)'
+        values = (receipt_id, reference, message, year, fees_id)
+        my_cursor.execute(statement, values)
+        mydb.commit()
+
+
+def enquiry1():
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    enquiry1=Tk()
+    enquiry1.title("RECEIPT")
+    enquiry1.geometry("1600x1000+0+0")
+    fees_id=IntVar()
+    name=StringVar()
+    message=StringVar()
+    receipt_id=IntVar()
+    global entry23
+    global entry24
+    global entry30
+    global entry31
+    global entry32
+    def enquiry1destroy():
+        enquiry1.destroy()
+    label44 = Label(enquiry1, text="RECEIPT", font=("arial", 25), bg="yellow",fg="black")
+    label44.pack(side=TOP, fill=X)
+    label1 = Label(enquiry1, text="RECEIPT ID:", font=("arial", 17))
+    label1.place(x=300, y=150)
+    label2 = Label(enquiry1, text="REFERENCE:", font=("arial", 17))
+    label2.place(x=300, y=210)
+    label3 = Label(enquiry1, text="MESSAGE:", font=("arial", 17))
+    label3.place(x=300, y=330)
+    label4 = Label(enquiry1, text="YEAR:", font=("arial", 17))
+    label4.place(x=300, y=400)
+    label4 = Label(enquiry1, text="FEES_ID:", font=("arial", 17))
+    label4.place(x=300, y=470)
+    entry23 = Entry(enquiry1, bd=5, width=20, font=("arial", 15))
+    entry23.place(x=500, y=150)
+    button = Button(enquiry1, text="submit", width=30, bg="black",fg="white", command=enter)
+    button.place(x=500, y=600)
+    button1=Button(enquiry1, text="<< BACK", width=30, bg="red",fg="black",command=enquiry1destroy)
+    button1.place(x=0,y=0)
+    entry24 = Entry(enquiry1, bd=5, width=20, font=("arial", 15))
+    entry24.place(x=500, y=210)
+    entry30 = Entry(enquiry1, bd=5, width=20, font=("arial", 15))
+    entry30.place(x=500, y=330)
+    entry31 = Entry(enquiry1, bd=5, width=20, font=("arial", 15))
+    entry31.place(x=500, y=400)
+    entry32 = Entry(enquiry1, bd=5, width=20, font=("arial", 15))
+    entry32.place(x=500, y=470)
+def cat():
+    z = IntVar()
+    x = entry26.get()
+    y = entry29.get()
+    FE = entry25.get()
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    my_cursor.execute('SELECT fee FROM student WHERE id = %s', (FE,))
+    for row24 in my_cursor.fetchall():
+          entry26.configure(state="normal")
+          entry26.delete(0, END)
+          entry26.insert(0,row24)
+          entry26.configure(state="disable")
+          mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+          my_cursor = mydb.cursor()
+          my_cursor.execute("use school")
+          my_cursor.execute('SELECT SUM(INSTALLMENT) FROM FEEINSTALLMENT WHERE fee_id = %s', (FE,))
+          for row23 in my_cursor.fetchall():
+              entry27.delete(0, END)
+              entry27.insert(0, row23)
+              ye = entry27.get()
+              z = int(float((entry26.get()))) - int(float((entry27.get())))
+              mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+              my_cursor = mydb.cursor()
+              my_cursor.execute("use school")
+              box1 = tkinter.messagebox.askyesno("LOGIN?","BY LOGGING IN, SEE YOUR BALANCES")
+              if box1 < 0:
+                my_cursor.execute('INSERT INTO FEEINSTALLMENT(fee_id, TOTAL_FEE, INSTALLMENT, PAID_FEE, REMAIN_FEE) VALUES (%s,%s,%s,%s,%s)',(FE, x, y, ye, z,))
+              mydb.commit()
+              entry28.configure(state="normal")
+              entry28.delete(0, END)
+              entry28.insert(0, z)
+              print(row23)
+              entry27.configure(state="disable")
+              entry26.configure(state="disable")
+              entry28.configure(state="disable")
+              mydb.commit()
+              print(x)
+              print(FE)
+
+def reset():
+    entry26.configure(state="normal")
+    entry25.configure(state="normal")
+    #entry24.configure(state="normal")
+    entry27.configure(state="normal")
+    entry28.configure(state="normal")
+    entry29.configure(state="normal")
+    entry26.delete(0,END )
+    entry25.delete(0, END)
+    entry27.delete(0,END)
+    entry28.delete(0,END)
+    entry29.delete(0,END)
+    entry27.configure(state="disable")
+    entry26.configure(state="disable")
+    entry28.configure(state="disable")
+
+def fee_add():
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    z=IntVar()
+    FE=entry25.get()
+    x=entry26.get()
+    y=entry29.get()
+    entry27.configure(state="normal")
+    entry28.configure(state="normal")
+    entry26.configure(state="normal")
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute('INSERT INTO FEEINSTALLMENT(fee_id, TOTAL_FEE, INSTALLMENT) VALUES (%s,%s,%s)', (FE, x,y,))
+    mydb.commit()
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute('SELECT SUM(INSTALLMENT) FROM FEEINSTALLMENT WHERE id = %s', (FE))
+    for row23 in my_cursor.fetchall():
+        entry27.delete(0,END)
+        entry27.insert(0,row23)
+        ye=entry27.get()
+        z=int(float((entry26.get())))-int(float((entry27.get())))
+        my_cursor.execute('UPDATE FEEINSTALLMENT SET PAID_FEE = %s WHERE id = %s', (ye,FE,))
+        my_cursor.execute('UPDATE FEEINSTALLMENT SET REMAIN_FEE = %s WHERE id = %s', (z,FE,))
+        entry28.configure(state="normal")
+        entry28.delete(0,END)
+        entry28.insert(0,z)
+        ye.set(row23)
+        entry27.configure(state="disable")
+        entry26.configure(state="disable")
+        entry28.configure(state="disable")
+        mydb.commit()
+        print(x)
+        print(FE)
+
+def installment2():
+    if int(entry29.index("end"))>int(0):
+        fee_add()
+    else:
+        tkinter.messagebox.showinfo("NO FEE ADDED","YOU HAVE NOT ADDED ANY FEE ")
+
+def window():
+  global main 
+  global name
+  global fees_id
+  global message
+  global admin_id
+  global initials
+  global priority
+  global case_number
+  global st_id
+  global view_id
+  global identifier
+  global view_number
+  global entry23
+  global entry24
+  global entry25
+  global entry26
+  global entry27
+  global entry28
+  global entry29
+  global entry30
+  global entry31
+  global entry66
+  global entry67
+  global entry68
+  global entry69
+  global entry70
+  global entry71
+  global entry72
+  global entry73
+  global entry74
+  global entry75
+  global entry76
+  global entry77
+  global entry78
+  global key
+  global fee3
+  global KEY
+  global ley
+  global sey
+  global ADDFEE
+  global entry29
+  #entry29=IntVar()
+  #entry26=IntVar()
+  #entry27=IntVar()
+  #key=StringVar()
+  #fee3=StringVar()
+  #ADDFEE=IntVar()
+  
+  main=Tk()
+  main.geometry("1600x1000+0+0")
+  main.title("Enquiry")
+  name=StringVar()
+  fees_id=IntVar()
+  message=StringVar()
+  fe=StringVar()
+  key=IntVar()
+  ley=StringVar()
+  sey=StringVar()
+
+  def distroy3():
+      main.destroy()
+      second()
+
+
+  button = Button(main, text="BACK", width=30, bg="red",fg="black", command=distroy3)
+  button.place(x=0, y=0)
+  label3=Label(main,text="ENTER STUDENT ID", font=("arial",17))
+  label3.place(x=400, y=100)
+  label3 = Label(main, text="ENTER AMOUNT", font=("arial", 17))
+  label3.place(x=650, y=100)
+  button22=Button(main,text="LOGIN",width=26,font=("arial",10),bg="black",fg="white",command=cat)
+  button22.place(x=400, y=310)
+  button23=Button(main,text="ADD FEE",width=26,font=("arial",10),bg="black",fg="white",command=installment2)
+  button23.place(x=650 , y=310)
+  entry29=Entry(main,bd=5, width=20 ,font=("arial",15))
+  entry29.place(x=650,y=200)
+  button28 = Button(main, text="RESET", width=26, font=("arial", 10), bg="red",fg="black", command=reset)
+  button28.place(x=1150,y=0)
+
+ 
+  label31=Label(main,text="TOTAL_FEE", font=("arial",17))
+  label31.place(x=900, y=550)
+  label32=Label(main,text="PAID_FEE", font=("arial",17))
+  label32.place(x=600, y=550)
+  label33=Label(main,text="REMAIN_FEE", font=("arial",17))
+  label33.place(x=300, y=550)
+  entry25=Entry(main,bd=5, width=20 ,font=("arial",15))
+  entry25.place(x=400,y=200)
+  entry26=Entry(main,bd=5, width=20 ,font=("arial",15))
+  entry26.place(x=900,y=600)
+  entry27=Entry(main,bd=5, width=20 ,font=("arial",15))
+  entry27.place(x=600,y=600)
+  entry28=Entry(main,bd=5, width=20 ,font=("arial",15))
+  entry28.place(x=300,y=600)
+
+
+#==================================FUNCTIONS==============================
+calculation2=3000
+
+
+def calculation():
+ ID = entry0.get()
+ NAME = entry1.get()
+ SURNAME = entry2.get()
+ EMAIL = entry3.get()
+ BOX = box.get()
+ GENDER = gender.get()
+ PYTHON = python.get()
+ JAVA = java.get()
+ C = c.get()
+ UNITY = unity.get()
+ PHP = php.get()
+ BASH = bash.get()
+ print(PYTHON)
+ print(GENDER)
+ CALCULATE = calculate.get()
+ if ID==("") and NAME==("") and  SURNAME==("")and  EMAIL==("") and BOX==("SELECT") and  GENDER==(3) and  JAVA==(0) and  PYTHON==(0) and C==(0) and  UNITY==(0) and  PHP==(0) and  BASH==(0):
+            tkinter.messagebox.showinfo(" DETAILS INVALID","FILL ALL THE DETAILS")
+ 
+ else:
+     global x
+     if box.get()=="COMPUTER SCIENCE" and gender.get()==0:
+         x=(calculation2-calculation2*20/100)
+         entry5.configure(state="normal")
+         entry5.delete(0,END)
+         entry5.insert(0,x)
+         entry5.configure(state="disable")
+     if box.get()=="COMPUTER SCIENCE" and gender.get()==1:
+         x=(calculation2-calculation2*10/100)
+         entry5.configure(state="normal")
+         entry5.delete(0, END)
+         entry5.insert(0, x)
+         entry5.configure(state="disable")
+     if box.get()=="MECHANICS" and gender.get()==1:
+         x=(calculation2)
+         entry5.configure(state="normal")
+         entry5.delete(0, END)
+         entry5.insert(0, x)
+         entry5.configure(state="disable")
+     if box.get()=="MECHANICS" and gender.get()==0:
+         x=(calculation2-calculation2*10/100)
+         entry5.configure(state="normal")
+         entry5.delete(0, END)
+         entry5.insert(0, x)
+         entry5.configure(state="disable")
+     if box.get()=="IT" and gender.get()==0:
+         x=(calculation2-calculation2*10/100)
+         entry5.configure(state="normal")
+         entry5.delete(0, END)
+         entry5.insert(0, x)
+         entry5.configure(state="disable")
+     if box.get()=="MYSQL" and gender.get()==1:
+         x=(calculation2)
+         entry5.configure(state="normal")
+         entry5.delete(0, END)
+         entry5.insert(0, x)
+         entry5.configure(state="disable")
+     if box.get()=="MYSQL" and gender.get()==0:
+         x=(calculation2-calculation2*10/100)
+         entry5.configure(state="normal")
+         entry5.delete(0, END)
+         entry5.insert(0, x)
+         entry5.configure(state="disable")
+
+def msg():
+ if subject.get()=="SELECT" or  gender.get()==3 or  ( python.get()==0 and  java.get==0 and c.get()==0 and  unity.get==0 and  php.get==0 and  bash.get==0):
+      calculate.set("PLEASE FILL ALL")
+ if  "@" and ".com" not in entry3.get() :
+     tkinter.messagebox.showinfo(" INVALID INPUT","ENTER VALID EMAIL ADDRESS WITH VALID DOMAIN")
+     entry3.delete(0,END)
+ else:
+    msg=tkinter.messagebox.askyesno("Please Confirm"," Register New Applicant?" )
+    if msg>0:
+     ID=entry0.get()
+     NAME=entry1.get()
+     SURNAME=entry2.get()
+     EMAIL=entry3.get()
+     SUBJECT=box.get()
+     GENDER=gender.get()
+     PYTHON=python.get()
+     JAVA=java.get()
+     C=c.get()
+     UNITY=unity.get()
+     PHP=php.get()
+     BASH=bash.get()
+     CALCULATE=calculate.get()
+     COURSE_ID=entry6.get()
+
+     mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+     my_cursor = mydb.cursor()
+     my_cursor.execute("use school")
+     sql_st = 'INSERT INTO student(id, name, surname, email, subject, gender, fee) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+     values1 = (ID, NAME, SURNAME, EMAIL, SUBJECT, GENDER, CALCULATE)
+     my_cursor.execute(sql_st, values1)
+     mydb.commit()
+
+     mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+     my_cursor = mydb.cursor()
+     my_cursor.execute("use school")
+     sql_st2 = 'INSERT INTO course(course_id, unity, php, bash, python, java, c) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+     values2 = (COURSE_ID, UNITY, PHP, BASH, PYTHON, JAVA, C)
+     my_cursor.execute(sql_st2, values2)
+     mydb.commit()
+
+
+def contact():
+     entry0.delete(0,END)
+     entry1.delete(0,END)
+     entry2.delete(0,END)
+     entry3.delete(0,END)
+     entry4.delete(0,END)
+     entry5.delete(0,END)
+     entry6.delete(0,END)
+     box.set("SELECT")
+     gender.set(3)
+     python.set(0)
+     java.set(0)
+     c.set(0)
+     unity.set(0)
+     php.set(0)
+     bash.set(0)
+     calculate.set("")
+     entry4.delete(0,END)
+
+
+def search_id():
+    SEARCH=entry4.get()
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("use school")
+    my_cursor.execute('SELECT name FROM student WHERE id = %s',(SEARCH,))
+    for row1 in my_cursor.fetchall():
+        name.set(row1)
+
+def search_surname():
+        SEARCH=entry4.get()
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT surname FROM student WHERE id = %s',(SEARCH,))
+        for row2 in my_cursor.fetchone():
+            surname.set(row2)
+
+def search_email():
+        SEARCH=entry4.get()
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT email FROM student WHERE id= %s',(SEARCH,))
+        for row3 in my_cursor.fetchone():
+            email.set(row3)
+
+def search_subject():
+        SEARCH=entry4.get()
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT subject FROM student WHERE id= %s',(SEARCH,))
+        for row4 in my_cursor.fetchone():
+            subject.set(row4)
+                
+def search_gender():
+        SEARCH=entry4.get()
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+        my_cursor.execute('SELECT gender FROM student WHERE id= %s',(SEARCH,))
+        for row5 in my_cursor.fetchone():
+                gender.set(row5)
+
+
+
+def update():
+    box1=tkinter.messagebox.askyesno("PLEASE INPUT ID IN SEARCH BOX","BY UPDATING DATA, YOU WILL REPLACE PREVIOUS DATA!")
+    if box1>0:
+        ID=entry0.get()
+        SEARCH=entry4.get()
+        NAME=entry1.get()
+        SURNAME=entry2.get()
+        EMAIL=entry3.get()
+        COURSE_ID=entry6.get()
+        SUBJECT=box.get()
+        GENDER=gender.get()
+        PYTHON=python.get()
+        JAVA=java.get()
+        C=c.get()
+        UNITY=unity.get()
+        PHP=php.get()
+        BASH=bash.get()
+        CALCULATE=entry5.get()
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("use school")
+    my_cursor.execute('UPDATE student SET name= %s WHERE id= %s',(NAME,SEARCH))
+    my_cursor.execute('UPDATE student SET surname= %s WHERE id= %s',(SURNAME,SEARCH))
+    my_cursor.execute('UPDATE student SET email= %s WHERE id= %s',(EMAIL,SEARCH))
+    my_cursor.execute('UPDATE student SET subject= %s WHERE id= %s',(SUBJECT,SEARCH))
+    my_cursor.execute('UPDATE student SET gender= %s WHERE id= %s',(GENDER,SEARCH))
+    mydb.commit()
+        
+         
+def delete():
+    box=tkinter.messagebox.askyesno("ERASE STUDENT DATA","DATA WILL NOT BE RECOVERED AGAIN")
+    if box>0:
+        SEARCH = entry4.get()
+        
+
+
+        mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+        my_cursor = mydb.cursor()
+        my_cursor.execute("DELETE FROM student")
+        mydb.commit()
+        contact()
+
+
+def deleta():
+    tkinter.messagebox.showinfo("FORMATTED DATABASE", "ALL DATA ERASED")
+    mydb = mysql.connector.connect(host='127.0.0.1', user='root', password='1234', database='school')
+    my_cursor = mydb.cursor()
+    my_cursor.execute("DELETE FROM receipt")
+    my_cursor.execute("DELETE FROM course_offered")
+    my_cursor.execute("DELETE FROM feeinstallment")
+    my_cursor.execute("DELETE FROM administration")
+    my_cursor.execute("DELETE FROM registration")
+    my_cursor.execute("DELETE FROM course")
+    my_cursor.execute("DELETE FROM student")
+    mydb.commit()
+
+def all():
+       search_id()
+       search_surname()
+       search_email()
+       search_subject()
+       search_gender()
+
+
+
+
+
+
+mydb.commit()
+mydb.close()
+
+firstw.mainloop()
+
+
